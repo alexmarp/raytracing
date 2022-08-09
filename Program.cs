@@ -17,13 +17,24 @@ Vec3 lowerLeftCorner = origin - horizontal/2 - vertical/2 - new Vec3(0.0, 0.0, f
 
 
 //RENDER
-string path = Path.GetFullPath($"rendered{Path.DirectorySeparatorChar}image1.ppm");
+string path = Path.GetFullPath($"rendered{Path.DirectorySeparatorChar}image2.ppm");
 
-Color RayColor(Ray r)
+Color BackgroundColor(Ray dir)
 {
-    var t = 0.5 * (r.Direction.y + 1.0);
-    return (1.0-t) * new Color(1.0, 1.0, 1.0) + t * new Color(0.5, 0.7, 1.0);
+    var t = 0.5 * (dir.Direction.y + 1.0);
+    return (1.0-t)*new Color(1.0, 1.0, 1.0) + t*new Color(0.0, 1.0, 1.0);
 }
+
+Color RayColor(Ray r, Sphere sphere)
+{
+    if (Sphere.Hit(sphere, r))
+    {
+        return new Color(1.0, 0.0, 0.0);
+    }
+    return BackgroundColor(r);
+}
+
+Sphere s1 = new Sphere(new Vec3(0.0, 0.0, -1.0), 0.5);
 
 using (StreamWriter s = File.CreateText(path))
 {
@@ -34,23 +45,13 @@ using (StreamWriter s = File.CreateText(path))
     {
         for (int x = 0; x < imWidth; x++)
         {
-            // double r = (double)x / imWidth;
-            // double g = (double)y / imHeight;
-            // double b = 0.25;
-
-            // int ir = (int)(255 * r);
-            // int ig = (int)(255 * g);
-            // int ib = (int)(255 * b);
-
             var u = (double)x / imWidth;
             var v = (double)y / imHeight;
             var dir = lowerLeftCorner + u*horizontal + v*vertical - origin;
             var r = new Ray(origin, dir);
-            Color pixelColor = RayColor(r);
+            Color pixelColor = RayColor(r, s1);
 
             s.WriteLine((int)(pixelColor.x * 255) + " " + (int)(pixelColor.y * 255) + " " + (int)(pixelColor.z * 255));
         }
     }
-    s.Flush();
-    s.Close();
 }
